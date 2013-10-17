@@ -17,26 +17,25 @@ public class HomePage extends Page {
 		super(driver);
 	}
 	
-	public EntityPage gotoSCR() {
+	public EntityPage gotoStartingGuide() throws InterruptedException {
 		EntityPage p;
 		WebElement el;
 		// TODO: Fix id and change xpath
-		el = driver.findElement(By.xpath("//div/h5/a[@href='#Synapse:syn150935']"));
+		el = driver.findElement(By.xpath("id('rootPanel')/div/div/div[3]/div[2]/div[3]/div/ul/li[1]/a"));
 		el.click();
-		
+		Thread.sleep(5000L);
 		p = PageFactory.initElements(driver, EntityPage.class);
 		return p;
 	}
 	
 	// Can't get the xpath to work...
 	public SearchResultsPage doSearch(String searchTerm) {
-		return null;
-//		WebElement btn = driver.findElement(By.xpath("//a[class='gwt-Anchor x-component'][text()='Search']"));
-//		WebElement inp = driver.findElement(By.xpath("//input[class='text'][class='homesearchbox']"));
-//		SearchResultsPage p;
-//		inp.sendKeys(searchTerm);
-//		btn.click();
-//		p = PageFactory.initElements(driver, SearchResultsPage.class);
-//		return p;
+		WebElement btn = driver.findElement(By.xpath("//a[contains(text(), 'Search')]"));
+		WebElement inp = driver.findElement(By.xpath("/html/body/div[2]/div[2]/div/div/div[3]/div[4]/div/div/div/table/tbody/tr/td[2]/input"));
+		SearchResultsPage p;
+		inp.sendKeys(searchTerm);
+		btn.click();
+		p = PageFactory.initElements(driver, SearchResultsPage.class);
+		return p;
 	}
 }

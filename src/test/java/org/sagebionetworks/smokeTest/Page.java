@@ -8,27 +8,28 @@ import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
 public class Page {
-	private static final String loginButtonXpath = "html/body/div[1]/div[2]/div/div/div[3]/div[1]/div/div/table/tbody/tr/td[3]/a";
-	private static final String registerButtonXpath = "/html/body/div/div[2]/div/div/div[3]/div/div/div/table/tbody/tr/td[2]/a";
-	private static final String supportButtonXpath = "/html/body/div/div[2]/div/div/div[3]/div/div/div/table/tbody/tr/td/a";
-	private static final String userButtonXpath = "//*/a[@class='gwt-Anchor headerUsernameLink']";
-	private static final String logoutButtonXpath = "//*[@id='sbn-tooltip-1']";
-	private static final String settingsButtonXpath = "//*[@id='sbn-tooltip-0']";
+	private static final String loginHeaderLinkXpath = "//a[contains(text(), 'Login')]";
+	private static final String registerHeaderLinkXpath = "//a[contains(text(), 'Register')]";
+	private static final String forumHeaderLinkXpath = "//a[contains(text(), 'Forum)]";
+	private static final String userButtonXpath = "//*[@id='sbn-tooltip-0']";
+	private static final String logoutButtonXpath = "//*[@id='sbn-tooltip-3']";
+	private static final String settingsButtonXpath = "//*[@id='sbn-tooltip-2']";
+	private static final String userGuideButtonXpath = "//*[@id='sbn-tooltip-1']";
 	private static final String imgSynapseTitleXpath = "//a[href='#']";
 
-	@FindBy(xpath=loginButtonXpath)
+	@FindBy(xpath=loginHeaderLinkXpath)
 	private WebElement btnLogin;
-	@FindBy(xpath=registerButtonXpath)
+	@FindBy(xpath=registerHeaderLinkXpath)
 	private WebElement btnRegister;
 
 	@FindBy(xpath=userButtonXpath)
 	WebElement btnUser;
 	@FindBy(xpath=logoutButtonXpath)
 	WebElement btnLogout;
-	
-	@FindBy(xpath=imgSynapseTitleXpath)
-	WebElement imgSynapseTitle;
-	
+//	
+//	@FindBy(xpath=imgSynapseTitleXpath)
+//	WebElement imgSynapseTitle;
+//	
 	
 	WebDriver driver;
 	private String baseUrl;
@@ -50,9 +51,9 @@ public class Page {
 	}
 	
 	public void logout() {
-		WebElement e = driver.findElement(By.xpath(userButtonXpath));
-		btnLogout.click();
-//		Page p = PageFactory.initElements(this.driver, Page.class);
+//		WebElement e = driver.findElement(By.xpath(userButtonXpath));
+//		btnLogout.click();
+////		Page p = PageFactory.initElements(this.driver, Page.class);
 		return;
 	}
 	public RegisterPage register() {
@@ -62,9 +63,10 @@ public class Page {
 	}
 	
 	public UserHomePage goHome() {
-		imgSynapseTitle.click();
-		UserHomePage userHomePage = PageFactory.initElements(this.driver, UserHomePage.class);
-		return userHomePage;
+//		imgSynapseTitle.click();
+//		UserHomePage userHomePage = PageFactory.initElements(this.driver, UserHomePage.class);
+//		return userHomePage;
+		return null;
 	}
 	
 	
@@ -72,7 +74,7 @@ public class Page {
 		boolean v = false;
 		WebElement e;
 		try {
-			e = this.driver.findElement(By.xpath(loginButtonXpath));
+			e = this.driver.findElement(By.xpath(loginHeaderLinkXpath));
 		} catch (NoSuchElementException ex) {
 			v = true;
 		} finally {
