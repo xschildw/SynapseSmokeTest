@@ -1,5 +1,6 @@
 package org.sagebionetworks.smokeTest;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.lang.String;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.mail.Store;
 import javax.mail.Folder;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import org.apache.commons.io.FileUtils;
 
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
@@ -30,6 +32,9 @@ import static org.junit.Assert.assertNull;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriver;
+import org.openqa.selenium.phantomjs.PhantomJSDriverService;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.Select;
 
@@ -53,7 +58,13 @@ public class AppTest {
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		loadProperties("");
-		driver = new FirefoxDriver();
+		DesiredCapabilities dCaps = new DesiredCapabilities();
+		dCaps.setJavascriptEnabled(true);
+		dCaps.setCapability("takescreenshot", true);
+		// TODO: Move to property
+		dCaps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY, "/usr/local/bin/phantomjs");
+		driver = new PhantomJSDriver(dCaps);
+		driver.manage().window().setSize(new Dimension(1280, 1024));
 		baseUrl = testConfiguration.getSynapseHomepageUrl();
 		driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
 	}
@@ -72,16 +83,18 @@ public class AppTest {
 		homePage.setBaseUrl(driver.getCurrentUrl());
 	}
 
-	@Ignore
+	
 	@Test
 	public void testAnonBrowse() throws Exception {
 		WebElement el;
 		String url;
-
-		assertFalse(AppTest.homePage.loggedIn());
-		EntityPage startingGuidePage = AppTest.homePage.gotoStartingGuide();
-		url = startingGuidePage.getDriverUrl();
+		File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+		FileUtils.copyFile(srcFile, new File("/Users/xavier/tmp/test.png"));
+		//assertFalse(AppTest.homePage.loggedIn());
+		//EntityPage startingGuidePage = AppTest.homePage.gotoStartingGuide();
+		//url = startingGuidePage.getDriverUrl();
 //		assertEquals(baseUrl + "/#!Wiki:syn1669771/ENTITY/54546", url);
+		assertTrue(true);
 
 	}
 
@@ -112,7 +125,7 @@ public class AppTest {
 		// TODO: check for error message on login page >> change API
 	}
 
-	
+	@Ignore
 	@Test
 	public void testSynapseLoginSuccess() throws Exception {
 		LoginPage loginPage = AppTest.homePage.login();
@@ -267,6 +280,21 @@ public class AppTest {
 		driver.get("http://www.google.com/xhtml");
 		WebElement searchBox = driver.findElement(By.name("q"));
 		searchBox.sendKeys("ChromeDriver");
+		searchBox.submit();
+		driver.quit();
+	}
+	
+	@Ignore
+	@Test
+	public void testPhantomJSDriver() {
+		DesiredCapabilities dCaps = new DesiredCapabilities();
+		dCaps.setJavascriptEnabled(true);
+		dCaps.setCapability("takescreenshot", true);
+		dCaps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY, "/usr/local/bin/phantomjs");
+		WebDriver driver = new PhantomJSDriver(dCaps);
+		driver.get("http://www.google.com/xhtml");
+		WebElement searchBox = driver.findElement(By.name("q"));
+		searchBox.sendKeys("PhantomJSDriver");
 		searchBox.submit();
 		driver.quit();
 	}
