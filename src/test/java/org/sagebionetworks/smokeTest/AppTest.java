@@ -1,25 +1,12 @@
 package org.sagebionetworks.smokeTest;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 import java.lang.String;
-import java.util.List;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.regex.*;
 
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.Store;
-import javax.mail.Folder;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import org.apache.commons.io.FileUtils;
 
 import org.junit.*;
@@ -31,26 +18,18 @@ import static org.junit.Assert.assertNull;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriver;
 import org.openqa.selenium.phantomjs.PhantomJSDriverService;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.Select;
 
 public class AppTest {
 	// TODO: Implement DriverFactory to handle different types and singleton
 
-	private static WebDriver driver;
+	private static WebDriverFacade driver;
 	private static HomePage homePage;
 	private static TestConfiguration testConfiguration;
 	private static String baseUrl;
-	private static final String synapseLoginInputXpath = "/html/body/div[2]/div[2]/div/div/div[3]/div/div/div/div[2]/a";
-	private static final String synapsePasswordInputXpath = "//div/div/input[@type='password']";
-	private static final String newUserEmailIputXpath = "x-auto-23-input";
-	private static final String newUserFirstNameInputXpath = "x-auto-24-input";
-	private static final String newUserLastNameInputXpath = "x-auto-25-input";
-
 	/**
 	 *
 	 * @throws Exception
@@ -58,20 +37,13 @@ public class AppTest {
 	@BeforeClass
 	public static void setUpClass() throws Exception {
 		loadProperties("");
-		DesiredCapabilities dCaps = new DesiredCapabilities();
-		dCaps.setJavascriptEnabled(true);
-		dCaps.setCapability("takescreenshot", true);
-		// TODO: Move to property
-		dCaps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY, "/usr/local/bin/phantomjs");
-		driver = new PhantomJSDriver(dCaps);
-		driver.manage().window().setSize(new Dimension(1280, 1024));
+		driver = WebDriverBase.initDriver();
 		baseUrl = testConfiguration.getSynapseHomepageUrl();
-		driver.manage().timeouts().implicitlyWait(60, TimeUnit.SECONDS);
 	}
 
 	@AfterClass
 	public static void tearDownClass() throws Exception {
-		driver.quit();
+		WebDriverBase.closeDriver();
 	}
 
 	@Before
@@ -88,8 +60,6 @@ public class AppTest {
 	public void testAnonBrowse() throws Exception {
 		WebElement el;
 		String url;
-		File srcFile = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
-		FileUtils.copyFile(srcFile, new File("/Users/xavier/tmp/test.png"));
 		//assertFalse(AppTest.homePage.loggedIn());
 		//EntityPage startingGuidePage = AppTest.homePage.gotoStartingGuide();
 		//url = startingGuidePage.getDriverUrl();

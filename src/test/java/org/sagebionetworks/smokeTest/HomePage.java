@@ -11,9 +11,13 @@ import org.openqa.selenium.support.FindBy;
 /*
  *	This is the page we land on originally 
 */
-public class HomePage extends Page {
+public class HomePage extends BasePage {
+	private static final String XPATH_LINK_STARTING_GUIDE = "";
 	
-	public HomePage(WebDriver driver) throws RuntimeException {
+	@FindBy(xpath=XPATH_LINK_STARTING_GUIDE)
+	private WebElement linkStartingGuide;
+	
+	public HomePage(WebDriverFacade driver) throws RuntimeException {
 		super(driver);
 	}
 	
