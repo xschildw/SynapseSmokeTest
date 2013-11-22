@@ -5,7 +5,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.FindBy;
 
-public class RegisterPage extends Page {
+public class RegisterPage {
+	private WebDriverFacade driver;
 
 	private static final String newUserEmailInputXpath = "//input[@id='"+ UiConstants.ID_INP_REG_EMAIL_ADDRESS + "-input"+"']";
 	private static final String newUserFirstNameInputXpath = "//input[@id='"+ UiConstants.ID_INP_REG_FIRST_NAME + "-input"+"']";
@@ -21,8 +22,17 @@ public class RegisterPage extends Page {
 	@FindBy(xpath = btnRegisterXpath)
 	WebElement btnRegister;
 	
-	public RegisterPage(WebDriver driver) {
-		super(driver);
+	public RegisterPage(WebDriverFacade driver) {
+		PageFactory.initElements(driver, this);
+		this.driver =  driver;
+	}
+	
+	public String getTitle() {
+		return this.driver.getTitle();
+	}
+	
+	public String getUrl() {
+		return this.driver.getCurrentUrl();
 	}
 	
 	public RegisterPage register(String userEmail, String userFirstName, String userLastName) throws InterruptedException {

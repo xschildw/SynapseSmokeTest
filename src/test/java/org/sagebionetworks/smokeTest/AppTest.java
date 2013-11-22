@@ -27,7 +27,6 @@ public class AppTest {
 	// TODO: Implement DriverFactory to handle different types and singleton
 
 	private static WebDriverFacade driver;
-	private static HomePage homePage;
 	private static TestConfiguration testConfiguration;
 	private static String baseUrl;
 	/**
@@ -49,186 +48,248 @@ public class AppTest {
 	@Before
 	public void setUp() throws Exception {
 		driver.get(baseUrl);
-		Thread.sleep(5000);
+		Thread.sleep(5000L);
 		assertEquals(baseUrl + "/", driver.getCurrentUrl());
-		homePage = PageFactory.initElements(driver, HomePage.class);
-		homePage.setBaseUrl(driver.getCurrentUrl());
 	}
-
+	
+	@Ignore
+	@Test
+	public void testBasePage() throws IOException {
+		BasePage homePage = new BasePage(driver);
+		ExternalPage p = homePage.doGotoSagebase();
+		String s = p.getTitle();
+		assertEquals("Sage Bionetworks - Redefining. Challenging. Predicting.", s);
+		s = p.getUrl();
+		assertEquals("http://www.sagebase.org/", s);
+	}
 	
 	@Test
-	public void testAnonBrowse() throws Exception {
-		WebElement el;
-		String url;
-		//assertFalse(AppTest.homePage.loggedIn());
-		//EntityPage startingGuidePage = AppTest.homePage.gotoStartingGuide();
-		//url = startingGuidePage.getDriverUrl();
-//		assertEquals(baseUrl + "/#!Wiki:syn1669771/ENTITY/54546", url);
-		assertTrue(true);
-
+	public void testSynapseLoginFailure() throws InterruptedException, IOException {
+		AnonPage homePage = new AnonPage(driver);
+		LoginPage p = homePage.doLogin();
+		String s = p.getTitle();
+		assertEquals("Sage Synapse: Contribute to the Cure", s);
+		s = p.getUrl();
+		assertEquals("https://staging.synapse.org/#!LoginPlace:0", s);
+		p.doSynapseInvalidLogin();
 	}
-
-	/**
-	 *
-	 * @throws Exception
-	 */
+	
 	@Ignore
 	@Test
-	// TODO: Fix
-	public void testAnonSearch() throws Exception {
-		assertFalse(AppTest.homePage.loggedIn());
-		SearchResultsPage p = AppTest.homePage.doSearch("cancer");
-		assertEquals(baseUrl + "/#!Search:cancer", p.getDriverUrl());
+	public void testAnonPage2() {
+		AnonPage homePage = new AnonPage(driver);
+		RegisterPage p = homePage.doRegister();
+		String s = p.getTitle();
+		assertEquals("Sage Synapse: Contribute to the Cure", s);
+		s = p.getUrl();
+		assertEquals("https://staging.synapse.org/#!RegisterAccount:0", s);
 	}
-
-	/**
-	 *
-	 * @throws Exception
-	 */
-	@Ignore
-	@Test
-	public void testSynapseLoginFailure() throws Exception {
-		LoginPage loginPage = AppTest.homePage.login();
-		assertEquals(baseUrl + UiConstants.STR_LOGIN_PAGE, loginPage.getDriverUrl());
-		UserHomePage p = loginPage.synapseLogin("abcde@xxx.org", "abcde");
-		assertNull(p);
-		// TODO: check for error message on login page >> change API
-	}
-
-	@Ignore
-	@Test
-	public void testSynapseLoginSuccess() throws Exception {
-		LoginPage loginPage = AppTest.homePage.login();
-		assertEquals(baseUrl + UiConstants.STR_LOGIN_PAGE, loginPage.getDriverUrl());
-		UserHomePage p = loginPage.synapseLogin(testConfiguration.getExistingSynapseUserEmailName(), testConfiguration.getExistingSynapseUserPassword());
-		assertNotNull(p);
-		assertTrue(p.loggedIn());
-
-		// Technically, should get a LogoutPage here...
-		p.logout();
-		assertEquals(baseUrl + UiConstants.STR_LOGOUT_PAGE, p.getDriverUrl());
-		assertFalse(p.loggedIn());
-	}
-
-	@Ignore
-	@Test
-	public void testOpenIdLoginNotLoggedIn() throws Exception {
-		// TODO: Logout of Google if logged in
-		LoginPage loginPage = AppTest.homePage.login();
-		assertEquals(loginPage.getDriverUrl(), baseUrl + UiConstants.STR_LOGIN_PAGE);
-		UserHomePage p = loginPage.openIdLogin(testConfiguration.getExistingSynapseUserEmailName(), testConfiguration.getExistingSynapseUserPassword());
-		assertNotNull(p);
-		assertTrue(p.loggedIn());
-
-		p.logout();
-		assertFalse(p.loggedIn());
-		assertEquals(p.getDriverUrl(), baseUrl + UiConstants.STR_LOGOUT_PAGE);
-
-	}
-
-	@Ignore
-	@Test
-	// TODO: Behaves as coded outside test but gets an extra stop when tested???
-	public void testOpenIdLoginLoggedIn() throws Exception {
-		LoginPage loginPage = AppTest.homePage.login();
-		assertEquals(loginPage.getDriverUrl(), baseUrl + UiConstants.STR_LOGIN_PAGE);
-		UserHomePage p = loginPage.openIdLogin("", "");
-		assertNotNull(p);
-		assertTrue(p.loggedIn());
-
-		p.logout();
-		assertFalse(p.loggedIn());
-	}
-
-	@Ignore
-	@Test
-	public void testRegisterUser() throws Exception {
-		WebElement el;
-		assertEquals("Sage Synapse : Contribute to the Cure", driver.getTitle());
-		Thread.sleep(1000L);
-		// TODO: Delete test account if exists
-		//	Register in UI
-		RegisterPage registerPage = AppTest.homePage.register();
-		registerPage = registerPage.register(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserFirstName(), testConfiguration.getNewUserLastName());
-		assertTrue(registerPage.isUserCreated());
-
-		// TODO: Put in utility function
-		// Get link from mail msg
-		Thread.sleep(10000);	// Give some time for mail to arrive
-		String msg = Helpers.getRegistrationMail(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserEmailPassword());
-		Pattern p = Pattern.compile("https://.+");
-		Matcher m = p.matcher(msg);
-		String url = null;
-		int nMatches = 0;
-		while (m.find()) {
-			nMatches++;
-			url = m.group();
-		}
-		assertEquals(1, nMatches);
-
-		// This should be equivalent to Reset Password method
-		// Set new user password
-		driver.get(url);
-		Thread.sleep(1000);
-		PasswordResetPage passwordResetPage = PageFactory.initElements(driver, PasswordResetPage.class);
-		LoginPage loginPage = passwordResetPage.resetPassword(testConfiguration.getNewUserSynapsePassword());
-		UserHomePage userHomePage = loginPage.synapseLoginWithTOS(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserSynapsePassword());
-		// TODO: Check that we're really on user home page
-		assertTrue(userHomePage.loggedIn());
-
-		// Logout
-		userHomePage.logout();
-		assertFalse(userHomePage.loggedIn());
-
-		// Cleanup registered user
-		Helpers.deleteRegisteredUserInCrowd(
-				driver,
-				testConfiguration.getCrowdConsoleUrl(),
-				testConfiguration.getCrowdAdminUser(),
-				testConfiguration.getCrowdAdminPassword(),
-				testConfiguration.getNewUserEmailName(),
-				testConfiguration.getNewUserFirstName(),
-				testConfiguration.getNewUserLastName());
-	}
-
-	@Ignore
-	@Test
-	public void testGetEmail() throws Exception {
-		String url;
-		String msg = Helpers.getRegistrationMail(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserEmailPassword());
-		Pattern p = Pattern.compile("https://.+");
-		Matcher m = p.matcher(msg);
-		int nMatches = 0;
-		while (m.find()) {
-			nMatches++;
-			if (nMatches == 1) {
-				url = m.group();
-			} else {
-				// Should never get here
-			}
-		}
-	}
-
-	@Ignore
-	@Test
-	public void testloadProperties() throws Exception {
-		loadProperties("");
-		assertNotNull(testConfiguration.getNewUserEmailName());
-	}
-
-	@Ignore
-	@Test
-	public void testDeleteRegisteredUser() throws Exception {
-		Helpers.deleteRegisteredUserInCrowd(
-				driver,
-				testConfiguration.getCrowdConsoleUrl(),
-				testConfiguration.getCrowdAdminUser(),
-				testConfiguration.getCrowdAdminPassword(),
-				testConfiguration.getNewUserEmailName(),
-				testConfiguration.getNewUserFirstName(),
-				testConfiguration.getNewUserLastName());
-	}
-
+//
+//	@Ignore
+//	@Test
+//	public void testAnonBrowse() throws Exception {
+//		BasePage homePage = PageFactory.initElements(driver, BasePage.class);
+//		WebElement el;
+//		String url;
+//		//assertFalse(AppTest.homePage.loggedIn());
+//		//EntityPage startingGuidePage = AppTest.homePage.gotoStartingGuide();
+//		//url = startingGuidePage.getDriverUrl();
+////		assertEquals(baseUrl + "/#!Wiki:syn1669771/ENTITY/54546", url);
+//		assertTrue(true);
+//
+//	}
+//
+//	/**
+//	 *
+//	 * @throws Exception
+//	 */
+//	@Ignore
+//	@Test
+//	// TODO: Fix
+//	public void testAnonSearch() throws Exception {
+//		HomePage homePage = PageFactory.initElements(driver, HomePage.class);
+//		assertFalse(AppTest.homePage.getLoggedIn());
+//		SearchResultsPage p = AppTest.homePage.doSearch("cancer");
+//		assertEquals(baseUrl + "/#!Search:cancer", p.getDriverUrl());
+//	}
+//
+//	/**
+//	 *
+//	 * @throws Exception
+//	 */
+//	@Ignore
+//	@Test
+//	public void testSynapseLoginFailure() throws Exception {
+//		BasePage homePage = PageFactory.initElements(driver, BasePage.class);
+//		LoginPage loginPage = homePage.doLogin();
+//		assertEquals(baseUrl + UiConstants.STR_LOGIN_PAGE, loginPage.getDriverUrl());
+//		UserHomePage p = loginPage.synapseLogin("abcde@xxx.org", "abcde");
+//		assertNull(p);
+//		// TODO: check for error message on login page >> change API
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testSynapseLoginSuccess() throws Exception {
+//		LoginPage loginPage = AppTest.homePage.doLogin();
+//		assertEquals(baseUrl + UiConstants.STR_LOGIN_PAGE, loginPage.getDriverUrl());
+//		UserHomePage p = loginPage.synapseLogin(testConfiguration.getExistingSynapseUserEmailName(), testConfiguration.getExistingSynapseUserPassword());
+//		assertNotNull(p);
+//		assertTrue(p.loggedIn());
+//
+//		// Technically, should get a LogoutPage here...
+//		p.logout();
+//		assertEquals(baseUrl + UiConstants.STR_LOGOUT_PAGE, p.getDriverUrl());
+//		assertFalse(p.loggedIn());
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testOpenIdLoginNotLoggedIn() throws Exception {
+//		// TODO: Logout of Google if logged in
+//		LoginPage loginPage = AppTest.homePage.doLogin();
+//		assertEquals(loginPage.getDriverUrl(), baseUrl + UiConstants.STR_LOGIN_PAGE);
+//		UserHomePage p = loginPage.openIdLogin(testConfiguration.getExistingSynapseUserEmailName(), testConfiguration.getExistingSynapseUserPassword());
+//		assertNotNull(p);
+//		assertTrue(p.loggedIn());
+//
+//		p.logout();
+//		assertFalse(p.loggedIn());
+//		assertEquals(p.getDriverUrl(), baseUrl + UiConstants.STR_LOGOUT_PAGE);
+//
+//	}
+//
+//	@Ignore
+//	@Test
+//	// TODO: Behaves as coded outside test but gets an extra stop when tested???
+//	public void testOpenIdLoginLoggedIn() throws Exception {
+//		LoginPage loginPage = AppTest.homePage.doLogin();
+//		assertEquals(loginPage.getDriverUrl(), baseUrl + UiConstants.STR_LOGIN_PAGE);
+//		UserHomePage p = loginPage.openIdLogin("", "");
+//		assertNotNull(p);
+//		assertTrue(p.loggedIn());
+//
+//		p.logout();
+//		assertFalse(p.loggedIn());
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testRegisterUser() throws Exception {
+//		WebElement el;
+//		assertEquals("Sage Synapse : Contribute to the Cure", driver.getTitle());
+//		Thread.sleep(1000L);
+//		// TODO: Delete test account if exists
+//		//	Register in UI
+//		RegisterPage registerPage = AppTest.homePage.doRegister();
+//		registerPage = registerPage.register(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserFirstName(), testConfiguration.getNewUserLastName());
+//		assertTrue(registerPage.isUserCreated());
+//
+//		// TODO: Put in utility function
+//		// Get link from mail msg
+//		Thread.sleep(10000);	// Give some time for mail to arrive
+//		String msg = Helpers.getRegistrationMail(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserEmailPassword());
+//		Pattern p = Pattern.compile("https://.+");
+//		Matcher m = p.matcher(msg);
+//		String url = null;
+//		int nMatches = 0;
+//		while (m.find()) {
+//			nMatches++;
+//			url = m.group();
+//		}
+//		assertEquals(1, nMatches);
+//
+//		// This should be equivalent to Reset Password method
+//		// Set new user password
+//		driver.get(url);
+//		Thread.sleep(1000);
+//		PasswordResetPage passwordResetPage = PageFactory.initElements(driver, PasswordResetPage.class);
+//		LoginPage loginPage = passwordResetPage.resetPassword(testConfiguration.getNewUserSynapsePassword());
+//		UserHomePage userHomePage = loginPage.synapseLoginWithTOS(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserSynapsePassword());
+//		// TODO: Check that we're really on user home page
+//		assertTrue(userHomePage.loggedIn());
+//
+//		// Logout
+//		userHomePage.logout();
+//		assertFalse(userHomePage.loggedIn());
+//
+//		// Cleanup registered user
+//		Helpers.deleteRegisteredUserInCrowd(
+//				driver,
+//				testConfiguration.getCrowdConsoleUrl(),
+//				testConfiguration.getCrowdAdminUser(),
+//				testConfiguration.getCrowdAdminPassword(),
+//				testConfiguration.getNewUserEmailName(),
+//				testConfiguration.getNewUserFirstName(),
+//				testConfiguration.getNewUserLastName());
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testGetEmail() throws Exception {
+//		String url;
+//		String msg = Helpers.getRegistrationMail(testConfiguration.getNewUserEmailName(), testConfiguration.getNewUserEmailPassword());
+//		Pattern p = Pattern.compile("https://.+");
+//		Matcher m = p.matcher(msg);
+//		int nMatches = 0;
+//		while (m.find()) {
+//			nMatches++;
+//			if (nMatches == 1) {
+//				url = m.group();
+//			} else {
+//				// Should never get here
+//			}
+//		}
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testloadProperties() throws Exception {
+//		loadProperties("");
+//		assertNotNull(testConfiguration.getNewUserEmailName());
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testDeleteRegisteredUser() throws Exception {
+//		Helpers.deleteRegisteredUserInCrowd(
+//				driver,
+//				testConfiguration.getCrowdConsoleUrl(),
+//				testConfiguration.getCrowdAdminUser(),
+//				testConfiguration.getCrowdAdminPassword(),
+//				testConfiguration.getNewUserEmailName(),
+//				testConfiguration.getNewUserFirstName(),
+//				testConfiguration.getNewUserLastName());
+//	}
+//
+//	@Ignore
+//	@Test
+//	public void testChromeDriver() {
+////	  // Optional, if not specified, WebDriver will search your path for chromedriver.
+////	  System.setProperty("webdriver.chrome.driver", "/usr/local/chromedriver");
+//
+//		WebDriver driver = new ChromeDriver();
+//		driver.get("http://www.google.com/xhtml");
+//		WebElement searchBox = driver.findElement(By.name("q"));
+//		searchBox.sendKeys("ChromeDriver");
+//		searchBox.submit();
+//		driver.quit();
+//	}
+//	
+//	@Ignore
+//	@Test
+//	public void testPhantomJSDriver() {
+//		DesiredCapabilities dCaps = new DesiredCapabilities();
+//		dCaps.setJavascriptEnabled(true);
+//		dCaps.setCapability("takescreenshot", true);
+//		dCaps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY, "/usr/local/bin/phantomjs");
+//		WebDriver driver = new PhantomJSDriver(dCaps);
+//		driver.get("http://www.google.com/xhtml");
+//		WebElement searchBox = driver.findElement(By.name("q"));
+//		searchBox.sendKeys("PhantomJSDriver");
+//		searchBox.submit();
+//		driver.quit();
+//	}
 	private static void loadProperties(String path) throws Exception {
 		Properties props = new Properties();
 		InputStream is = AppTest.class.getClassLoader().getResourceAsStream("smoke.properties");
@@ -239,33 +300,6 @@ public class AppTest {
 			ex.printStackTrace();
 		}
 	}
+//
 
-	@Ignore
-	@Test
-	public void testChromeDriver() {
-//	  // Optional, if not specified, WebDriver will search your path for chromedriver.
-//	  System.setProperty("webdriver.chrome.driver", "/usr/local/chromedriver");
-
-		WebDriver driver = new ChromeDriver();
-		driver.get("http://www.google.com/xhtml");
-		WebElement searchBox = driver.findElement(By.name("q"));
-		searchBox.sendKeys("ChromeDriver");
-		searchBox.submit();
-		driver.quit();
-	}
-	
-	@Ignore
-	@Test
-	public void testPhantomJSDriver() {
-		DesiredCapabilities dCaps = new DesiredCapabilities();
-		dCaps.setJavascriptEnabled(true);
-		dCaps.setCapability("takescreenshot", true);
-		dCaps.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY, "/usr/local/bin/phantomjs");
-		WebDriver driver = new PhantomJSDriver(dCaps);
-		driver.get("http://www.google.com/xhtml");
-		WebElement searchBox = driver.findElement(By.name("q"));
-		searchBox.sendKeys("PhantomJSDriver");
-		searchBox.submit();
-		driver.quit();
-	}
 }

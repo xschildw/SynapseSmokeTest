@@ -30,7 +30,7 @@ public class WebDriverBase {
 		_driver = new WebDriverFacade(new PhantomJSDriver(dCaps));
 		WebDriver.Window window = _driver.manage().window();
 		window.setSize(new Dimension(1650,900));
-		_driver.manage().timeouts().pageLoadTimeout(300, TimeUnit.SECONDS);
+		_driver.manage().timeouts().pageLoadTimeout(60, TimeUnit.SECONDS);
 		return _driver;
 	}
 	
